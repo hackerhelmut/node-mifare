@@ -17,6 +17,7 @@
 #include <winscard.h>
 #endif
 #include <freefare.h>
+#include <cstdlib>
 
 
 using namespace v8;
