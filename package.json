@@ -1,0 +1,22 @@
+{
+  "name": "node-mifare",
+  "version": "0.1.0",
+  "description": "Read and write Mifare DESFire Cards from nodejs",
+  "main": "lib/mifare.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "desfire",
+    "mifare",
+    "freefare",
+    "pcsc",
+    "ndef",
+    "nfc"
+  ],
+  "author": "Rolf Meyer <rmeyer@embeddedfactor.com>",
+  "license": "MIT",
+  "dependencies": {
+    "ndef": "0.0.4"
+  }
+}
