@@ -11,31 +11,49 @@
         {
           "action_name": "fetch",
           "inputs": ["build"],
-          "outputs": ["<@(freefare_path)"],
+          "outputs": ["../<@(freefare_path)"],
           "action": ["git", "clone", "-b", "pcsc", "<@(freefare_url)", "<@(freefare_path)"],
           "message": "Fetching libfreefare for PCSC"
         },
         {
-          "action_name": "reader",
-          "inputs": ["<@(freefare_path)"],
-          "outputs": ["<@(freefare_path)/libfreefare/reader.h"],
-          "action": ["wget", "<@(freefarereader_mac)", "-O", "<@(freefare_path)/libfreefare/reader.h"],
-          "message": "Fetching libpcsc-lite reader.h for MacOS"
-        },
-        {
-          "action_name": "configure",
-          "inputs": ["<@(freefare_path)", "<@(freefare_path)/libfreefare/reader.h"],
-          "outputs": ["<@(freefare_path)/config.h"],
-          "action": ["sh", "-c", "cd <@(freefare_path); ln -s /usr/local/share/libtool/config/ltmain.sh .; autoreconf -vis; export PCSC_CFLAGS=\"-framework PCSC\"; export PCSC_LIBS=\"-framework PCSC\"; ./configure --with-pcsc"],
-          "message": "Configuring libfreefare"
-        },
-        {
           "action_name": "make",
           "inputs": ["<@(freefare_path)/config.h"],
-          "outputs": ["<@(freefare_path)/libfreefare/.libs/libfreefare.a"],
+          "outputs": ["../<@(freefare_path)/libfreefare/.libs/libfreefare.a"],
           "action": ["make", "-C", "<@(freefare_path)"],
           "message": "Compiling libfreefare"
         }
+      ],
+      "conditions": [
+        ["OS=='linux'", {
+          "actions": [
+            {
+              "action_name": "configure",
+              "inputs": ["<@(freefare_path)"],
+              "outputs": ["../<@(freefare_path)/config.h"],
+              "action": ["sh", "-c", "cd <(freefare_path); for x in 1 2; do automake --add-missing; libtoolize; autoreconf; done; ./configure --with-pcsc --with-pic"],
+              "message": "Configuring libfreefare"
+            }
+          ]
+        }],
+        ["OS=='mac'", {
+          "actions": [
+            {
+              "action_name": "reader",
+              "inputs": ["<@(freefare_path)"],
+              "outputs": ["../<@(freefare_path)/libfreefare/reader.h"],
+              "action": ["wget", "<@(freefarereader_mac)", "-O", "<@(freefare_path)/libfreefare/reader.h"],
+              "message": "Fetching libpcsc-lite reader.h for MacOS"
+            },
+            {
+              "action_name": "configure",
+              "inputs": ["<@(freefare_path)", "<@(freefare_path)/libfreefare/reader.h"],
+              "outputs": ["../<@(freefare_path)/config.h"],
+              "action": ["sh", "-c", "cd <(freefare_path); ln -s /usr/local/share/libtool/config/ltmain.sh .; autoreconf -vis; export PCSC_CFLAGS=\"-framework PCSC\"; export PCSC_LIBS=\"-framework PCSC\"; ./configure --with-pcsc"],
+              "message": "Configuring libfreefare"
+            }
+          ]
+        }],
+        ["OS=='win'", {}]
       ]
     },
     {
