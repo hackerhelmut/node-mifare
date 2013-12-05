@@ -1,4 +1,4 @@
-var mifare = require("./build/Release/node_mifare");
+var mifare = require("../build/Release/node_mifare");
 var ndef = require("ndef");
 
 console.log(mifare);
