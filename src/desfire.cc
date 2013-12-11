@@ -144,8 +144,7 @@ Handle<Value> CardKeyVersion(const Arguments& args) {
     return scope.Close(errorResult(res, "Can't conntect to Mifare DESFire target."));
   }
 
-  Local<Number> key = Local<Number>::Cast(args[0]);
-  res = mifare_desfire_get_key_version(data->tag, key->Value(), &version);
+  res = mifare_desfire_get_key_version(data->tag, args[0]->ToUint32()->Value(), &version);
   if(res) {
     return scope.Close(errorResult(res, freefare_strerror(data->tag)));
   }
@@ -282,7 +281,7 @@ Handle<Value> CardFormat(const Arguments& args) {
   Local<Object> self = args.This();
   card_data *data = static_cast<card_data *>(External::Unwrap(self->GetHiddenValue(String::NewSymbol("data"))));
   uint8_t key_data_picc[8] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
-  if(args.Length()>1 || (args.Length()==1 and !args[0]->IsObject())) {
+  if(args.Length()>1 || (args.Length()==1 && !args[0]->IsObject())) {
     return scope.Close(errorResult(0x12321, "The only argument to listen has to be a callback function"));
   }
   // Send Mifare DESFire ChangeKeySetting to change the PICC master key settings into :

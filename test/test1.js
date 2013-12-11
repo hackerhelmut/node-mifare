@@ -6,7 +6,8 @@ console.log(mifare);
 var readers = mifare.getReader();
 console.log(readers);
 
-readers["ACS ACR122U PICC Interface 00 00"].listen(function(err, reader, card) {
+//readers["ACS ACR122U PICC Interface 00 00"].listen(function(err, reader, card) {
+readers["ACS ACR122 0"].listen(function(err, reader, card) {
   card.setKey([0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0], "aes", true, 1);
   card.setAid(0x542B);
   //console.log(err, reader, card);

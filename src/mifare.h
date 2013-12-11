@@ -17,7 +17,7 @@
 #else
 #include <winscard.h>
 #endif
-#include <freefare.h>
+#include <freefare_pcsc.h>
 
 /**
  * Get Names of the Readers connected to the computer

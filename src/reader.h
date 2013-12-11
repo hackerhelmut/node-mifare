@@ -16,7 +16,7 @@
 #else
 #include <winscard.h>
 #endif
-#include <freefare.h>
+#include <freefare_pcsc.h>
 #include <cstdlib>
 
 
