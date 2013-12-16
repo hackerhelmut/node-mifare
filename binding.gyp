@@ -21,11 +21,11 @@
 
       "conditions": [
         ["OS=='linux'", {
-          "include_dirs": ["/usr/include/PCSC"],
-          "libraries": ["-lpthread", "-lpcsclite"]
+#"include_dirs": ["/usr/include/PCSC"],
+#"libraries": ["-lpthread", "-lpcsclite"]
         }],
         ["OS=='mac'", {
-          "libraries": ["-framework", "PCSC"]
+#"libraries": ["-framework", "PCSC"]
         }],
         ["OS=='win'", {
           "variables": {
@@ -33,13 +33,13 @@
             "openssl_root": "C:\OpenSSL-Win32"
           },
           "include_dirs": [
-            "<(freefare_path)/contrib/win32"
-            "<(freefare_path)/libfreefare",
-            "C:\OpenSSL-Win32"
+#"<(freefare_path)/contrib/win32"
+#"<(freefare_path)/libfreefare",
+#"C:\OpenSSL-Win32"
           ],
           "libraries": [
-            "-lWinSCard",
-            "-l<(openssl_root)/lib/libeay32.lib"
+#"-lWinSCard",
+#"-l<(openssl_root)/lib/libeay32.lib"
           ]
         }]
       ]
