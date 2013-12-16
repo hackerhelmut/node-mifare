@@ -1,0 +1,4 @@
+.*.sp?
+*~
+/build
+/node_modules
