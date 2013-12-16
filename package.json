@@ -17,7 +17,7 @@
   "author": "Rolf Meyer <rmeyer@embeddedfactor.com>",
   "license": "MIT",
   "dependencies": {
-    "libfreefare-pcsc": "git+ssh://git@github.com:hackerhelmut/libfreefare-pcsc.git#pcsc",
+    "libfreefare-pcsc": "git+https://github.com/hackerhelmut/libfreefare-pcsc.git#pcsc",
     "ndef": "0.0.4"
   }
 }
