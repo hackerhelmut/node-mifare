@@ -2,7 +2,7 @@
   "name": "node-mifare",
   "version": "0.1.0",
   "description": "Read and write Mifare DESFire Cards from nodejs",
-  "main": "lib/mifare.js",
+  "main": "build/Release/node_mifare",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
