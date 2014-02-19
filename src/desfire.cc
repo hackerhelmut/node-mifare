@@ -777,21 +777,33 @@ Handle<Value> CardWriteNdef(const Arguments& args) {
   uint8_t ndef_msg_b[2];
   ndef_msg_b[0] = (uint8_t)((ndef_msg_len) >> 8);
   ndef_msg_b[1] = (uint8_t)(ndef_msg_len);
-
+  uint32_t zero = 0;
   //Mifare DESFire WriteData to write the content of the NDEF File with NLEN equal to NDEF Message length and NDEF Message
-  res = mifare_desfire_write_data(data->tag, file_no, 0, 2, ndef_msg_b);
+  res = mifare_desfire_write_data(data->tag, file_no, 0, 2, (uint8_t*)&zero);
   if(res < 0) {
     mifare_desfire_disconnect(data->tag);
-    return scope.Close(errorResult(res, "Writing ndef message size faild"));
+    return scope.Close(errorResult(res, "Writing ndef message size pre faild"));
   }
 
   res = mifare_desfire_write_data(data->tag, file_no, 2, ndef_msg_len, (uint8_t*)ndef_msg);
+  if(res != ndef_msg_len){
+    printf("790, data write res %d %d\n", res, ndef_msg_len);
+    mifare_desfire_disconnect(data->tag);
+    return scope.Close(errorResult(res, "Writing full ndef message failed"));
+  }
   if(res < 0) {
     mifare_desfire_disconnect(data->tag);
-    return scope.Close(errorResult(res, "Writing ndef message faild"));
+    return scope.Close(errorResult(res, "Writing ndef message failed"));
+  }
+  
+  res = mifare_desfire_write_data(data->tag, file_no, 0, 2, ndef_msg_b);
+  if(res < 0) {
+    mifare_desfire_disconnect(data->tag);
+    return scope.Close(errorResult(res, "Writing ndef message size post faild"));
   }
 
-  mifare_desfire_disconnect(data->tag);
+
+  res = mifare_desfire_disconnect(data->tag);
   return scope.Close(validTrue()); 
 }
 
