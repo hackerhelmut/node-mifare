@@ -10,8 +10,8 @@ void reader_timer_callback(uv_timer_t *handle, int timer_status) {
   LONG res;
   DWORD event;
   Local<String> status;
-  Local<Object> error = Object::New();
   Local<Object> reader = Object::New();
+  reader->Set(String::NewSymbol("name"), String::New(data->state.szReader));
 
   res = SCardGetStatusChange(data->context->context, 0, &data->state, 1);
   if(res == SCARD_S_SUCCESS) {
@@ -19,27 +19,26 @@ void reader_timer_callback(uv_timer_t *handle, int timer_status) {
     if(event & SCARD_STATE_CHANGED) {
       data->state.dwCurrentState = event;
       if(event & SCARD_STATE_IGNORE) {
-        status = v8::String::New("SCARD_STATE_IGNORE");
+        status = v8::String::New("ignore");
       } else if(event & SCARD_STATE_UNKNOWN) {
-        status = v8::String::New("SCARD_STATE_UNKNOWN");
+        status = v8::String::New("unknown");
       } else if(event & SCARD_STATE_UNAVAILABLE) {
-        status = v8::String::New("SCARD_STATE_UNAVAILABLE");
+        status = v8::String::New("unavailable");
       } else if(event & SCARD_STATE_EMPTY) {
-        status = v8::String::New("SCARD_STATE_EMPTY");
+        status = v8::String::New("empty");
       } else if(event & SCARD_STATE_PRESENT) {
-        status = v8::String::New("SCARD_STATE_PRESENT");
+        status = v8::String::New("present");
       } else if(event & SCARD_STATE_ATRMATCH) {
-        status = v8::String::New("SCARD_STATE_ATRMATCH");
+        status = v8::String::New("atrmatch");
       } else if(event & SCARD_STATE_EXCLUSIVE) {
-        status = v8::String::New("SCARD_STATE_EXCLUSIVE");
+        status = v8::String::New("exclusive");
       } else if(event & SCARD_STATE_INUSE) {
-        status = v8::String::New("SCARD_STATE_INUSE");
+        status = v8::String::New("inuse");
       } else if(event & SCARD_STATE_MUTE) {
-        status = v8::String::New("SCARD_STATE_MUTE");
+        status = v8::String::New("mute");
       }
 
       // Prepare readerObject event
-      reader->Set(String::NewSymbol("name"), String::New(data->state.szReader));
       reader->Set(String::NewSymbol("status"), v8::Local<v8::Value>::New(status));
 
       // Card object, will be eventually filled lateron
@@ -52,16 +51,10 @@ void reader_timer_callback(uv_timer_t *handle, int timer_status) {
         for(int i = 0; (!res) && tags[i]; i++) {
           if(freefare_get_tag_type(tags[i])==DESFIRE) {
 
-            //res = mifare_desfire_connect(tags[i]);
-            //if(res) {
-            //  error->Set(String::NewSymbol("msg"), String::New("Can't conntect to Mifare DESFire target."));
-            //  error->Set(String::NewSymbol("code"), Integer::New(res));
-            //  continue;
-            //}
             card_data *cardData = new card_data(data);
             cardData->tag = tags[i];
             Local<Object> card = Object::New();
-            card->Set(String::NewSymbol("type"), String::New("DESFIRE"));
+            card->Set(String::NewSymbol("type"), String::New("desfire"));
             card->SetHiddenValue(String::NewSymbol("data"), External::Wrap(cardData));
 
             card->Set(String::NewSymbol("info"), FunctionTemplate::New(CardInfo)->GetFunction());
@@ -76,30 +69,44 @@ void reader_timer_callback(uv_timer_t *handle, int timer_status) {
 
             const unsigned argc = 3;
             Local<Value> argv[argc] = {
-              Local<Value>::New(error),
+              Local<Value>::New(Undefined()),
               Local<Value>::New(reader),
               Local<Value>::New(card)
             };
             data->callback->Call(Context::GetCurrent()->Global(), argc, argv);
 
             delete cardData;
-            //mifare_desfire_disconnect(tags[i]);
-            error = Object::New();
           }
         }
         freefare_free_tags(tags);
+      } else {
+        const unsigned argc = 3;
+        Local<Value> argv[argc] = {
+          Local<Value>::New(Undefined()),
+          Local<Value>::New(reader),
+          Local<Value>::New(Undefined())
+        };
+        data->callback->Call(Context::GetCurrent()->Global(), argc, argv);
       }
     }
   } else if(static_cast<unsigned int>(res) == SCARD_E_TIMEOUT) {
-  }
-  if(error->Has(String::NewSymbol("msg"))) {
-    const unsigned argc = 3;
-    Local<Value> argv[argc] = {
-      Local<Value>::New(error),
-      Local<Value>::New(Undefined()),
-      Local<Value>::New(Undefined())
-    };
-    data->callback->Call(Context::GetCurrent()->Global(), argc, argv);
+      reader->Set(String::NewSymbol("status"), v8::Local<v8::Value>::New(v8::String::New("timeout")));
+      const unsigned argc = 3;
+      Local<Value> argv[argc] = {
+        Local<Value>::New(Undefined()),
+        Local<Value>::New(reader),
+        Local<Value>::New(Undefined())
+      };
+      data->callback->Call(Context::GetCurrent()->Global(), argc, argv);
+  } else {
+      reader->Set(String::NewSymbol("status"), v8::Local<v8::Value>::New(v8::String::New("unknown")));
+      const unsigned argc = 3;
+      Local<Value> argv[argc] = {
+        Local<Value>::New(Undefined()),
+        Local<Value>::New(reader),
+        Local<Value>::New(Undefined())
+      };
+      data->callback->Call(Context::GetCurrent()->Global(), argc, argv);
   }
 }
 
