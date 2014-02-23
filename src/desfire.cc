@@ -23,6 +23,7 @@ Handle<Value> CardInfo(const Arguments& args) {
   if(res) {
     return scope.Close(errorResult(res, freefare_strerror(data->tag)));
   }
+  mifare_desfire_disconnect(data->tag);
 
   Local<Array> uid = Local<Array>::New(Array::New(7));
   for(unsigned int j=0; j<7; j++) {
@@ -69,7 +70,6 @@ Handle<Value> CardInfo(const Arguments& args) {
   software->Set(String::NewSymbol("protocol"), Number::New(info.software.protocol));
   card->Set(String::NewSymbol("software"), software);
   
-  mifare_desfire_disconnect(data->tag);
   return scope.Close(card);
 }
 
