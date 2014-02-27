@@ -867,6 +867,7 @@ Handle<Value> CardFree(const Arguments& args) {
   freefare_free_tags(data->tags);
   delete data;
   data = NULL;
+  return scope.Close(Undefined()); 
 }
 
 
