@@ -853,10 +853,8 @@ Handle<Value> CardWriteNdef(const Arguments& args) {
 }
 
 Handle<Value> CardFree(const Arguments& args) {
-  int res;
   HandleScope scope;
   Local<Object> self = args.This();
-  Local<Object> card = Object::New();
   card_data *data = static_cast<card_data *>(External::Unwrap(self->GetHiddenValue(String::NewSymbol("data"))));
   if(!data) {
     return scope.Close(errorResult(0x12322, "Card is already free"));

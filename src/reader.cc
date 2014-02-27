@@ -48,9 +48,8 @@ void reader_timer_callback(uv_timer_t *handle, int timer_status) {
 
         // Establishes a connection to a smart card contained by a specific reader.
         MifareTag *tags = freefare_get_tags_pcsc(data->context, data->state.szReader);
-        // With PCSC tags is always length 2 with {tag, NULL}
-        int i = 1;
-        //for(int i = 0; (!res) && tags[i]; i++) {
+        // XXX: With PCSC tags is always length 2 with {tag, NULL} we assume this is allways the case here!!!!
+        for(int i = 0; (!res) && tags[i]; i++) {
           if(tags[i] && freefare_get_tag_type(tags[i]) == DESFIRE) {
 
             card_data *cardData = new card_data(data);
@@ -81,7 +80,7 @@ void reader_timer_callback(uv_timer_t *handle, int timer_status) {
 
             //delete cardData;
           }
-        //}
+        }
         //freefare_free_tags(tags);
       } else {
         const unsigned argc = 3;
