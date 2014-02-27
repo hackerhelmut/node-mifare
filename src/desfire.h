@@ -41,6 +41,7 @@ struct card_data {
   }
   reader_data *reader;
   MifareTag tag;
+  MifareTag *tags; // To free the tags array
   MifareDESFireKey key;
   MifareDESFireAID aid;
 };
@@ -75,5 +76,7 @@ Handle<Value> CardReadNdef(const Arguments& args);
 Handle<Value> CardWriteNdef(const Arguments& args);
 
 Handle<Value> CardCreateNdef(const Arguments& args);
+
+Handle<Value> CardFree(const Arguments& args);
 
 #endif // DESFIRE_H

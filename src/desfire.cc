@@ -10,6 +10,10 @@ Handle<Value> CardInfo(const Arguments& args) {
   Local<Object> self = args.This();
   Local<Object> card = Object::New();
   card_data *data = static_cast<card_data *>(External::Unwrap(self->GetHiddenValue(String::NewSymbol("data"))));
+  if(!data) {
+    return scope.Close(errorResult(0x12322, "Card is already free"));
+  }
+
   if(args.Length()!=0) {
     return scope.Close(errorResult(0x12321, "This function takes no arguments"));
   }
@@ -80,6 +84,10 @@ Handle<Value> CardMasterKeyInfo(const Arguments& args) {
   HandleScope scope;
   Local<Object> self = args.This();
   card_data *data = static_cast<card_data *>(External::Unwrap(self->GetHiddenValue(String::NewSymbol("data"))));
+  if(!data) {
+    return scope.Close(errorResult(0x12322, "Card is already free"));
+  }
+
   if(args.Length()!=0) {
     return scope.Close(errorResult(0x12321, "This function takes no arguments"));
   }
@@ -115,6 +123,10 @@ Handle<Value> CardName(const Arguments& args) {
   HandleScope scope;
   Local<Object> self = args.This();
   card_data *data = static_cast<card_data *>(External::Unwrap(self->GetHiddenValue(String::NewSymbol("data"))));
+  if(!data) {
+    return scope.Close(errorResult(0x12322, "Card is already free"));
+  }
+
   int res;
   if(args.Length()!=0) {
     return scope.Close(errorResult(0x12321, "This function takes no arguments"));
@@ -136,6 +148,10 @@ Handle<Value> CardKeyVersion(const Arguments& args) {
   HandleScope scope;
   Local<Object> self = args.This();
   card_data *data = static_cast<card_data *>(External::Unwrap(self->GetHiddenValue(String::NewSymbol("data"))));
+  if(!data) {
+    return scope.Close(errorResult(0x12322, "Card is already free"));
+  }
+
   if(args.Length()!=1 || !args[0]->IsNumber()) {
     return scope.Close(errorResult(0x12321, "This function takes a key number as arguments"));
   }
@@ -148,6 +164,7 @@ Handle<Value> CardKeyVersion(const Arguments& args) {
   if(res) {
     return scope.Close(errorResult(res, freefare_strerror(data->tag)));
   }
+  mifare_desfire_disconnect(data->tag);
   return scope.Close(Local<Number>::New(Number::New(version)));
 }
 
@@ -157,6 +174,10 @@ Handle<Value> CardFreeMemory(const Arguments& args) {
   HandleScope scope;
   Local<Object> self = args.This();
   card_data *data = static_cast<card_data *>(External::Unwrap(self->GetHiddenValue(String::NewSymbol("data"))));
+  if(!data) {
+    return scope.Close(errorResult(0x12322, "Card is already free"));
+  }
+
   if(args.Length()!=0) {
     return scope.Close(errorResult(0x12321, "This function takes no arguments"));
   }
@@ -178,6 +199,10 @@ Handle<Value> CardSetAid(const Arguments& args) {
   HandleScope scope;
   Local<Object> self = args.This();
   card_data *data = static_cast<card_data *>(External::Unwrap(self->GetHiddenValue(String::NewSymbol("data"))));
+  if(!data) {
+    return scope.Close(errorResult(0x12322, "Card is already free"));
+  }
+
   if(args.Length()!=1 || !args[0]->IsNumber() || args[0]->ToUint32()->Value() > 0xFFFFFF) {
     return scope.Close(errorResult(0x12321, "This function takes the aid as argument a number smaller than 0x1000000"));
   }
@@ -199,6 +224,10 @@ Handle<Value> CardSetKey(const Arguments & args) {
   HandleScope scope;
   Local<Object> self = args.This();
   card_data *data = static_cast<card_data *>(External::Unwrap(self->GetHiddenValue(String::NewSymbol("data"))));
+  if(!data) {
+    return scope.Close(errorResult(0x12322, "Card is already free"));
+  }
+
   uint8_t key_val[24];
   bool version = false;
   uint8_t aes_ver = 0;
@@ -280,6 +309,10 @@ Handle<Value> CardFormat(const Arguments& args) {
   HandleScope scope;
   Local<Object> self = args.This();
   card_data *data = static_cast<card_data *>(External::Unwrap(self->GetHiddenValue(String::NewSymbol("data"))));
+  if(!data) {
+    return scope.Close(errorResult(0x12322, "Card is already free"));
+  }
+
   uint8_t key_data_picc[8] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
   if(args.Length()>1 || (args.Length()==1 && !args[0]->IsObject())) {
     return scope.Close(errorResult(0x12321, "The only argument to listen has to be a callback function"));
@@ -349,6 +382,10 @@ Handle<Value> CardCreateNdef(const Arguments& args) {
   uint8_t *key_data_app = ndef_read_key;
 
   card_data *data = static_cast<card_data *>(External::Unwrap(self->GetHiddenValue(String::NewSymbol("data"))));
+  if(!data) {
+    return scope.Close(errorResult(0x12322, "Card is already free"));
+  }
+
   if(args.Length()!=1 || !Buffer::HasInstance(args[0])) {
     return scope.Close(errorResult(0x12321, "This function takes a buffer to write to a tag"));
   }
@@ -683,6 +720,10 @@ Handle<Value> CardReadNdef(const Arguments& args) {
 
   uint8_t ndef_read_key[8] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
   card_data *data = static_cast<card_data *>(External::Unwrap(self->GetHiddenValue(String::NewSymbol("data"))));
+  if(!data) {
+    return scope.Close(errorResult(0x12322, "Card is already free"));
+  }
+
   if(args.Length()!=0) {
     return scope.Close(errorResult(0x12321, "This function does not take any arguments"));
   }
@@ -746,6 +787,10 @@ Handle<Value> CardWriteNdef(const Arguments& args) {
 
   uint8_t ndef_read_key[8] = { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 };
   card_data *data = static_cast<card_data *>(External::Unwrap(self->GetHiddenValue(String::NewSymbol("data"))));
+  if(!data) {
+    return scope.Close(errorResult(0x12322, "Card is already free"));
+  }
+
   if(args.Length()!=1 || !Buffer::HasInstance(args[0])) {
     return scope.Close(errorResult(0x12321, "This function takes a buffer to write to a tag"));
   }
@@ -806,4 +851,24 @@ Handle<Value> CardWriteNdef(const Arguments& args) {
   res = mifare_desfire_disconnect(data->tag);
   return scope.Close(validTrue()); 
 }
+
+Handle<Value> CardFree(const Arguments& args) {
+  int res;
+  HandleScope scope;
+  Local<Object> self = args.This();
+  Local<Object> card = Object::New();
+  card_data *data = static_cast<card_data *>(External::Unwrap(self->GetHiddenValue(String::NewSymbol("data"))));
+  if(!data) {
+    return scope.Close(errorResult(0x12322, "Card is already free"));
+  }
+
+  if(args.Length()!=0) {
+    return scope.Close(errorResult(0x12321, "This function takes no arguments"));
+  }
+  
+  freefare_free_tags(data->tags);
+  delete data;
+  data = NULL;
+}
+
 

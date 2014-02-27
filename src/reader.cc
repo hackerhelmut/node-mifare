@@ -48,11 +48,14 @@ void reader_timer_callback(uv_timer_t *handle, int timer_status) {
 
         // Establishes a connection to a smart card contained by a specific reader.
         MifareTag *tags = freefare_get_tags_pcsc(data->context, data->state.szReader);
-        for(int i = 0; (!res) && tags[i]; i++) {
-          if(freefare_get_tag_type(tags[i])==DESFIRE) {
+        // With PCSC tags is always length 2 with {tag, NULL}
+        int i = 1;
+        //for(int i = 0; (!res) && tags[i]; i++) {
+          if(tags[i] && freefare_get_tag_type(tags[i]) == DESFIRE) {
 
             card_data *cardData = new card_data(data);
             cardData->tag = tags[i];
+            cardData->tags = tags;
             Local<Object> card = Object::New();
             card->Set(String::NewSymbol("type"), String::New("desfire"));
             card->SetHiddenValue(String::NewSymbol("data"), External::Wrap(cardData));
@@ -66,6 +69,7 @@ void reader_timer_callback(uv_timer_t *handle, int timer_status) {
             card->Set(String::NewSymbol("format"), FunctionTemplate::New(CardFormat)->GetFunction());
             card->Set(String::NewSymbol("readNdef"), FunctionTemplate::New(CardReadNdef)->GetFunction());
             card->Set(String::NewSymbol("writeNdef"), FunctionTemplate::New(CardWriteNdef)->GetFunction());
+            card->Set(String::NewSymbol("free"), FunctionTemplate::New(CardFree)->GetFunction());
 
             const unsigned argc = 3;
             Local<Value> argv[argc] = {
@@ -75,10 +79,10 @@ void reader_timer_callback(uv_timer_t *handle, int timer_status) {
             };
             data->callback->Call(Context::GetCurrent()->Global(), argc, argv);
 
-            delete cardData;
+            //delete cardData;
           }
-        }
-        freefare_free_tags(tags);
+        //}
+        //freefare_free_tags(tags);
       } else {
         const unsigned argc = 3;
         Local<Value> argv[argc] = {
