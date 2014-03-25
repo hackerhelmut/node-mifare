@@ -763,6 +763,11 @@ Handle<Value> CardReadNdef(const Arguments& args) {
     mifare_desfire_disconnect(data->tag);
     return scope.Close(errorResult(0x12326, "Reading ndef message faild"));
   }
+  if(res != ndef_msg_len){
+    printf("767, data read res %d %d\n", res, ndef_msg_len);
+    mifare_desfire_disconnect(data->tag);
+    return scope.Close(errorResult(0x12329, "Reading full ndef message failed"));
+  }
   Buffer *slowBuffer = Buffer::New(ndef_msg_len);
   memcpy(Buffer::Data(slowBuffer), ndef_msg, ndef_msg_len);
 
