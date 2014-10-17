@@ -16,6 +16,10 @@
   ],
   "author": "Rolf Meyer <rmeyer@embeddedfactor.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hackerhelmut/node-mifare.git"
+  },
   "dependencies": {
     "libfreefare-pcsc": "git+https://github.com/hackerhelmut/libfreefare-pcsc.git#pcsc",
     "ndef": "0.0.4"

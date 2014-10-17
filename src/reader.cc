@@ -10,10 +10,10 @@ void reader_timer_callback(uv_timer_t *handle, int timer_status) {
   LONG res;
   DWORD event;
   Local<String> status;
-  Local<Object> reader = Object::New();
+  Local<Object> reader = Local<Object>::New(data->self);
   reader->Set(String::NewSymbol("name"), String::New(data->state.szReader));
 
-  res = SCardGetStatusChange(data->context->context, 0, &data->state, 1);
+  res = SCardGetStatusChange(data->context->context, 1, &data->state, 1);
   if(res == SCARD_S_SUCCESS) {
     event = data->state.dwEventState;
     if(event & SCARD_STATE_CHANGED) {
@@ -113,6 +113,22 @@ void reader_timer_callback(uv_timer_t *handle, int timer_status) {
   }
 }
 
+ReaderRelease(const Arguments &args) {
+  HandleScope scope;
+  Local<Object> self = args.This();
+  reader_data *data = static_cast<reader_data *>(External::Unwrap(self->GetHiddenValue(String::NewSymbol("data"))));
+  if(args.Length()!=0) {
+    ThrowException(Exception::TypeError(String::New("reconnect does not take any arguments")));
+    return scope.Close(Undefined());
+  }
+
+  if(data->timer) {
+    uv_timer_stop(&data->timer);
+  }
+  SCardReleaseContext(data->context->context);
+  return scope.Close(args.This()); 
+}
+
 Handle<Value> ReaderListen(const Arguments& args) {
   HandleScope scope;
   Local<Object> self = args.This();
@@ -127,6 +143,74 @@ Handle<Value> ReaderListen(const Arguments& args) {
 
   uv_timer_init(uv_default_loop(), &data->timer);
   uv_timer_start(&data->timer, reader_timer_callback, 500, 250);
+  return scope.Close(args.This()); 
+}
+
+#if defined (_WIN32)
+#  define IOCTL_CCID_ESCAPE_SCARD_CTL_CODE SCARD_CTL_CODE(3500)
+#elif defined(__APPLE__)
+#  include <wintypes.h>
+#  define IOCTL_CCID_ESCAPE_SCARD_CTL_CODE (((0x31) << 16) | ((3500) << 2))
+#elif defined (__FreeBSD__) || defined (__OpenBSD__)
+#  define IOCTL_CCID_ESCAPE_SCARD_CTL_CODE (((0x31) << 16) | ((3500) << 2))
+#elif defined (__linux__)
+#  include <reader.h>
+// Escape IOCTL tested successfully:
+#  define IOCTL_CCID_ESCAPE_SCARD_CTL_CODE SCARD_CTL_CODE(1)
+#else
+#    error "Can't determine serial string for your system"
+#endif
+#include <iomanip>
+Handle<Value> ReaderSetLed(const Arguments& args) {
+  HandleScope scope;
+  Local<Object> self = args.This();
+  const uint32_t sSize = 9;
+  uint8_t sBuffer[sSize] = {0xFF, 0x00, 0x40, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00};
+  uint8_t rBuffer[262];
+  const uint8_t pos[5] = {3, 5, 6, 7, 8};
+  DWORD rSize = 262;
+  uint32_t rLength = 0;
+  SCARDHANDLE hCard;
+  DWORD dwActiveProtocol;
+  LONG rv;
+
+  if(args.Length()==0 || args.Length() > 5) {
+    ThrowException(Exception::TypeError(String::New("This function must have up to 5 unsigned chars as arguments")));
+    return scope.Close(Undefined());
+  }
+
+  for(int i = 0; i < args.Length(); i++) {
+    sBuffer[pos[i]] = args[i]->ToUint32()->Value();
+  }
+
+  reader_data *data = static_cast<reader_data *>(External::Unwrap(self->GetHiddenValue(String::NewSymbol("data"))));
+  rv = SCardConnect(data->context->context, data->name.c_str(), SCARD_SHARE_DIRECT, SCARD_PROTOCOL_T0 | SCARD_PROTOCOL_T1, &hCard, &dwActiveProtocol);
+  //rv = SCardControl(hCard, IOCTL_CCID_ESCAPE_SCARD_CTL_CODE, sBuffer, sSize, rBuffer, rSize, &rLength);
+  int retCode = SCardTransmit(hCard, NULL, sBuffer, sSize, NULL, rBuffer, &rSize);
+  std::cout << "rv: " << std::hex << rv << std::endl;
+  std::cout << "sent: " 
+            << std::hex << std::setw(2) << std::setfill('0')
+            << (int)sBuffer[0] << " " 
+            << std::hex << std::setw(2) << std::setfill('0')
+            << (int)sBuffer[1] << " " 
+            << std::hex << std::setw(2) << std::setfill('0')
+            << (int)sBuffer[2] << " " 
+            << std::hex << std::setw(2) << std::setfill('0')
+            << (int)sBuffer[3] << " " 
+            << std::hex << std::setw(2) << std::setfill('0')
+            << (int)sBuffer[4] << " " 
+            << std::hex << std::setw(2) << std::setfill('0')
+            << (int)sBuffer[5] << " "
+            << std::hex << std::setw(2) << std::setfill('0')
+            << (int)sBuffer[6] << " " 
+            << std::hex << std::setw(2) << std::setfill('0')
+            << (int)sBuffer[7] << " " 
+            << std::hex << std::setw(2) << std::setfill('0')
+            << (int)sBuffer[8] << " "
+            << std::endl;
+  std::cout << "retCode: " << std::hex << retCode << std::endl;
+  rv = SCardDisconnect(hCard, SCARD_LEAVE_CARD);
+
   return scope.Close(args.This()); 
 }
 

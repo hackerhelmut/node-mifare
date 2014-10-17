@@ -74,6 +74,7 @@ Handle<Value> getReader(const Arguments& args) {
     Local<Object> reader = Local<Object>::New(Object::New());
     reader->Set(String::NewSymbol("name"), String::New(reader_iter));
     reader->Set(String::NewSymbol("listen"), FunctionTemplate::New(ReaderListen)->GetFunction());
+    reader->Set(String::NewSymbol("setLed"), FunctionTemplate::New(ReaderSetLed)->GetFunction());
     reader->SetHiddenValue(String::NewSymbol("data"), data);
     readers->Set(String::NewSymbol(reader_iter), reader);
     reader_iter += strlen(reader_iter)+1;

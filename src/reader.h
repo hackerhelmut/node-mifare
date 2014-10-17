@@ -48,5 +48,6 @@ struct reader_data {
 
 void reader_timer_callback(uv_timer_t *handle, int timer_status);
 Handle<Value> ReaderListen(const Arguments& args);
+Handle<Value> ReaderSetLed(const Arguments& args);
 
 #endif // READER_H
