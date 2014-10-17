@@ -66,6 +66,7 @@ void reader_timer_callback(uv_timer_t *handle, int timer_status) {
             card->Set(String::NewSymbol("setKey"), FunctionTemplate::New(CardSetKey)->GetFunction());
             card->Set(String::NewSymbol("setAid"), FunctionTemplate::New(CardSetAid)->GetFunction());
             card->Set(String::NewSymbol("format"), FunctionTemplate::New(CardFormat)->GetFunction());
+            card->Set(String::NewSymbol("createNdef"), FunctionTemplate::New(CardCreateNdef)->GetFunction());
             card->Set(String::NewSymbol("readNdef"), FunctionTemplate::New(CardReadNdef)->GetFunction());
             card->Set(String::NewSymbol("writeNdef"), FunctionTemplate::New(CardWriteNdef)->GetFunction());
             card->Set(String::NewSymbol("free"), FunctionTemplate::New(CardFree)->GetFunction());
@@ -113,19 +114,23 @@ void reader_timer_callback(uv_timer_t *handle, int timer_status) {
   }
 }
 
-ReaderRelease(const Arguments &args) {
+Handle<Value> ReaderRelease(const Arguments &args) {
   HandleScope scope;
   Local<Object> self = args.This();
   reader_data *data = static_cast<reader_data *>(External::Unwrap(self->GetHiddenValue(String::NewSymbol("data"))));
   if(args.Length()!=0) {
-    ThrowException(Exception::TypeError(String::New("reconnect does not take any arguments")));
+    ThrowException(Exception::TypeError(String::New("release does not take any arguments")));
     return scope.Close(Undefined());
   }
 
-  if(data->timer) {
+  //if(data->timer) {
     uv_timer_stop(&data->timer);
-  }
+  //}
   SCardReleaseContext(data->context->context);
+  data->callback.Dispose();
+  data->callback.Clear();
+  data->self.Dispose();
+  data->self.Clear();
   return scope.Close(args.This()); 
 }
 
